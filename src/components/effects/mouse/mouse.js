@@ -52,13 +52,13 @@ class MousePRLX {
 			// Коеф. X 
 			const paramСoefficientX = el.dataset.flsMouseCx ? +el.dataset.flsMouseCx : 100;
 			// Коеф. У 
-			const paramСoefficientY = el.dataset.prlxCy ? +el.dataset.prlxCy : 100;
+			const paramСoefficientY = el.dataset.flsMouseCy ? +el.dataset.flsMouseCy : 100;
 			// Напр. Х
 			const directionX = el.hasAttribute('data-fls-mouse-dxr') ? -1 : 1;
 			// Напр. У
 			const directionY = el.hasAttribute('data-fls-mouse-dyr') ? -1 : 1;
 			// Швидкість анімації
-			const paramAnimation = el.dataset.prlxA ? +el.dataset.prlxA : 50;
+			const paramAnimation = el.dataset.flsMouseA ? +el.dataset.flsMouseA : 50;
 
 
 			// Оголошення змінних

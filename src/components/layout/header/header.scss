@@ -5,7 +5,13 @@
 	width: 100vw;
 	height: auto;
 	z-index: 100;
-	transition: all 0.6s ease .2s;
+	transition: all 0.6s ease 0s;
+	padding-left: 32px;
+	padding-right: 32px;
+
+	.-leaving-main-video & {
+		transition-delay: 0.4s;
+	}
 
 	.-active-main-video & {
 		opacity: 0;

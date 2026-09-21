@@ -14,7 +14,7 @@
     "deploy": "vite build -- --ftp",
     "git": "vite build -- --git",
     "stat": "node template_modules/statistics.js -- --stat",
-	 "stat-clear": "node template_modules/statistics.js -- --stat-clear",
+    "stat-clear": "node template_modules/statistics.js -- --stat-clear",
     "add": "node template_modules/createcomponent.js",
     "wp": "node template_modules/wordpress/terminal.js up -d && vite -- --wp",
     "wpbuild": "node template_modules/wordpress/terminal.js up -d && vite build -- --wp",
@@ -77,5 +77,8 @@
   },
   "optionalDependencies": {
     "@img/sharp-win32-x64": "latest"
+  },
+  "dependencies": {
+    "three": "^0.186.0"
   }
 }
