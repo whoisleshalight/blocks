@@ -23,7 +23,8 @@
 	&__body {
 		border: 1px solid hsla(0, 0%, 100%, 0.2);
 		border-radius: 50px;
-
+// backdrop-filter: blur(6px);
+// background-color: hsla(0, 0%, 100%, 0.2);
 		padding-left: 34px;
 		padding-top: 10px;
 		padding-bottom: 10px;
