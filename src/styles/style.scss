@@ -40,12 +40,12 @@ body {
 	overflow: clip;
 
 	// Притискаємо footer
-	> main {
+	>main {
 		flex: 1 1 auto;
 	}
 
 	// Фікс для слайдерів
-	> * {
+	>* {
 		min-width: 0;
 	}
 }
@@ -134,6 +134,51 @@ body {
 	font-weight: 700;
 }
 
+.-btn-02 {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 24px 40px 24px 80px;
+	font-size: 24px;
+	font-weight: 600;
+	border: 1px solid #333333;
+	border-radius: 50px;
+	background-color: hsla(82, 66%, 84%, 0.06);
+}
+
+.-btn-03 {
+	color: #000;
+	font-size: 24px;
+	font-weight: 600;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	background-color: #DDF1BB;
+	border-radius: 50px;
+	padding: 24px 40px 24px 80px;
+
+}
+.-btn-04{gap: 8px;padding-top: 22px;padding-bottom: 22px;background-color: #DDF1BB;font-size: 24px;color: #000;
+	font-weight: 600;
+	border: 2px solid #000;border-radius: 50px;display: flex;align-items: center;justify-content: center;
+}
+//========================================================================================================================================================
+
+
 * {
 	outline: none !important;
 }
+
+//========================================================================================================================================================
+
+.-spadding {
+	padding-top: 180px;
+	padding-bottom: 180px;
+}
+
+.-spaddingt {
+	padding-top: 180px;
+}
+
+
+//========================================================================================================================================================
