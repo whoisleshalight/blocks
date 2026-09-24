@@ -12,7 +12,6 @@ textarea {
 	border-radius: 0 !important;
 	width: 100%;
 	display: block;
-	padding: 10px;
 	border: 1px solid #eee;
 	caret-color: inherit;
 	&.--form-focus {
@@ -30,5 +29,4 @@ textarea {
 }
 textarea.input {
 	resize: vertical;
-	padding: 0px 0px;
 }
