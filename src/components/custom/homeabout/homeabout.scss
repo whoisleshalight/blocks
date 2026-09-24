@@ -13,6 +13,16 @@
 		left: -15%;
 		transform: rotate(45deg);
 	}
+	&::after {
+		content: '';
+		width: percent(500, 1920);
+		height: percent(500, 1920);
+		background-color: #F3F3F3;
+		position: absolute;
+		bottom: -15%;
+		right: -15%;
+		transform: rotate(45deg);
+	}
 
 	&__body {}
 
