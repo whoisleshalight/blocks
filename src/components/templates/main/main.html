@@ -13,10 +13,12 @@
 	<script type="module" src="@components/templates/main/main.js"></script>
 	<link rel="stylesheet" href="@components/templates/main/main.scss">
 	<body>
-		<div class="wrapper">
-			<block name="header"></block>
-			<block name="main"></block>
-			<block name="footer"></block>
+		<block name="header"></block>
+		<div id="smooth-wrapper">
+			<div id="smooth-content" class="wrapper">
+				<block name="main"></block>
+				<block name="footer"></block>
+			</div>
 		</div>
 		<block name="popup"></block>
 		<script type="module" src="@js/app.js"></script>

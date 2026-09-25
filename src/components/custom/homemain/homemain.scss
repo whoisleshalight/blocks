@@ -86,7 +86,7 @@
 	&.-active {
 
 		img,
-		.main__el-pixel-canvas {
+		.pixel-image-effect__canvas {
 			opacity: 1;
 			transform: scale(1.1);
 		}
@@ -100,7 +100,7 @@
 		height: 100%;
 
 		img,
-		.main__el-pixel-canvas {
+		.pixel-image-effect__canvas {
 			position: absolute;
 			object-fit: contain;
 			opacity: 0.4;
@@ -111,21 +111,15 @@
 			}
 		}
 
-		img.-pixel-effect-source {
-			visibility: hidden;
-		}
-
-		.main__el-pixel-canvas {
-			display: block;
+		.pixel-image-effect__canvas {
 			height: auto;
-			pointer-events: none;
 		}
 	}
 
 	&.-one {
 
 		img,
-		.main__el-pixel-canvas {
+		.pixel-image-effect__canvas {
 			top: 16%;
 			left: 18%;
 			width: percent(262, 1920);
@@ -135,7 +129,7 @@
 	&.-two {
 
 		img,
-		.main__el-pixel-canvas {
+		.pixel-image-effect__canvas {
 			bottom: 16%;
 			left: 9%;
 			width: percent(333, 1920);
@@ -145,7 +139,7 @@
 	&.-three {
 
 		img,
-		.main__el-pixel-canvas {
+		.pixel-image-effect__canvas {
 			top: 20%;
 			right: 13%;
 			width: percent(326, 1920);
@@ -155,7 +149,7 @@
 	&.-four {
 
 		img,
-		.main__el-pixel-canvas {
+		.pixel-image-effect__canvas {
 			bottom: 15%;
 			right: 11%;
 			width: percent(262, 1920);
@@ -167,7 +161,7 @@
 	.main__el {
 
 		img,
-		.main__el-pixel-canvas {
+		.pixel-image-effect__canvas {
 			transform: scale(.7);
 			opacity: 0;
 		}

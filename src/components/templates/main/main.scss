@@ -1,0 +1,14 @@
+:root {
+	--scroll-smoother-duration: 0.9;
+}
+
+img.-pixel-effect-source {
+	visibility: hidden;
+}
+
+.pixel-image-effect__canvas {
+	position: absolute;
+	display: block;
+	height: auto;
+	pointer-events: none;
+}

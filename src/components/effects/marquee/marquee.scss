@@ -1,6 +1,19 @@
 [data-fls-marquee] {
+	width: 100%;
+	overflow: hidden;
 }
+
 [data-fls-marquee-inner] {
+	display: flex;
+	width: max-content;
+	will-change: transform;
 }
+
+[data-fls-marquee-group] {
+	display: flex;
+	flex: none;
+}
+
 [data-fls-marquee-item] {
+	flex: none;
 }

@@ -1,9 +1,5 @@
 .home-blog {
 
-	&__container {}
-
-	&__body {}
-
 	&__inner {
 		display: flex;
 		gap: 16px;
@@ -50,8 +46,6 @@
 			}
 		}
 	}
-
-	&__item {}
 }
 
 .top-section-five {
@@ -66,7 +60,6 @@
 		text-transform: uppercase;
 		flex: 0 0 504px;
 		color: #000;
-
 	}
 
 	span {

@@ -1,13 +1,5 @@
 import "./homemain.scss"
 
-const pixelEffectMedia = window.matchMedia("(hover: hover) and (pointer: fine) and (min-width: 768px)")
-
-if (pixelEffectMedia.matches && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-	import("./pixel-image-effect.js").then(({ initPixelImageEffects }) => {
-		initPixelImageEffects(".main__el img")
-	})
-}
-
 document.querySelectorAll(".center-main__wrapper").forEach((wrapper) => {
 	const main = wrapper.closest(".main")
 	const quadrantElements = {

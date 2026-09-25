@@ -5,12 +5,9 @@ const defaultConfig = {
 	mouseRadius: 1.75,
 	strength: 0.8,
 	relaxation: 0.92,
-	displacement: 1,
-	aberration: 0.2,
+	displacement: 1.6,
+	aberration: 0,
 	velocityDecay: 0.3,
-	scrollStrength: 0.045,
-	scrollMaxOffset: 0.0075,
-	scrollDecay: 0.78,
 	overflow: 0.16,
 	maxOffset: 0.35
 }
@@ -155,7 +152,7 @@ class PixelImageEffect {
 		)
 
 		this.canvas = this.renderer.domElement
-		this.canvas.classList.add("main__el-pixel-canvas")
+		this.canvas.classList.add("pixel-image-effect__canvas")
 		this.canvas.setAttribute("aria-hidden", "true")
 		this.canvas.addEventListener("webglcontextlost", (event) => {
 			event.preventDefault()
@@ -200,13 +197,10 @@ class PixelImageEffect {
 			relaxation,
 			mouseRadius,
 			strength,
-			scrollStrength,
-			scrollMaxOffset,
 			maxOffset
 		} = this.config
 		const rect = this.canvas.getBoundingClientRect()
 		const hasSize = rect.width > 0 && rect.height > 0
-		const isInViewport = hasSize && rect.bottom > 0 && rect.top < window.innerHeight
 		const isPointerInside = hasSize && pointer.seen
 			&& pointer.x >= rect.left && pointer.x <= rect.right
 			&& pointer.y >= rect.top && pointer.y <= rect.bottom
@@ -214,9 +208,6 @@ class PixelImageEffect {
 		const mouseY = isPointerInside ? (1 - (pointer.y - rect.top) / rect.height) * this.gridHeight : -1000
 		const velocityX = hasSize ? pointer.velocityX / rect.width : 0
 		const velocityY = hasSize ? -pointer.velocityY / rect.height : 0
-		const scrollForce = isInViewport
-			? clamp(-pointer.scrollVelocityY / rect.height * scrollStrength, -scrollMaxOffset, scrollMaxOffset)
-			: 0
 		let needsRender = false
 
 		for (let y = 0; y < this.gridHeight; y++) {
@@ -251,23 +242,6 @@ class PixelImageEffect {
 						)
 						needsRender = true
 					}
-				}
-
-				if (Math.abs(scrollForce) > 0.00002) {
-					const variation = Math.sin((x + 1) * 12.9898 + (y + 1) * 78.233)
-					const rowFalloff = 0.6 + Math.sin(((y + 0.5) / this.gridHeight) * Math.PI) * 0.4
-
-					this.gridData[dataIndex] = clamp(
-						this.gridData[dataIndex] + scrollForce * variation * 0.16,
-						-maxOffset,
-						maxOffset
-					)
-					this.gridData[dataIndex + 1] = clamp(
-						this.gridData[dataIndex + 1] + scrollForce * (0.7 + Math.abs(variation) * 0.3) * rowFalloff,
-						-maxOffset,
-						maxOffset
-					)
-					needsRender = true
 				}
 			}
 		}
@@ -319,14 +293,10 @@ export const initPixelImageEffects = async (selector, options = {}) => {
 		y: -1000,
 		velocityX: 0,
 		velocityY: 0,
-		scrollVelocityY: 0,
 		lastTime: 0,
 		seen: false
 	}
 	let animationFrame = 0
-	let isSectionVisible = true
-	let previousScrollY = window.scrollY
-	let previousScrollTime = performance.now()
 
 	const handlePointerMove = (event) => {
 		if (event.pointerType === "touch") return
@@ -351,57 +321,33 @@ export const initPixelImageEffects = async (selector, options = {}) => {
 		pointer.lastTime = event.timeStamp
 	}
 
-	const handleScroll = () => {
-		const now = performance.now()
-		const elapsed = clamp(now - previousScrollTime, 8, 40)
-		const frameScale = 1000 / 60 / elapsed
-		const nextVelocityY = (window.scrollY - previousScrollY) * frameScale
-
-		pointer.scrollVelocityY = pointer.scrollVelocityY * 0.3 + nextVelocityY * 0.7
-		previousScrollY = window.scrollY
-		previousScrollTime = now
-	}
-
 	const resetPointer = () => {
 		pointer.seen = false
 		pointer.velocityX = 0
 		pointer.velocityY = 0
-		pointer.scrollVelocityY = 0
 	}
 
 	const render = () => {
 		animationFrame = window.requestAnimationFrame(render)
 
-		if (document.hidden || !isSectionVisible) return
+		if (document.hidden) return
 
 		effects.forEach((effect) => effect.update(pointer))
 		pointer.velocityX *= config.velocityDecay
 		pointer.velocityY *= config.velocityDecay
-		pointer.scrollVelocityY *= config.scrollDecay
 	}
 
 	window.addEventListener("pointermove", handlePointerMove, { passive: true })
-	window.addEventListener("scroll", handleScroll, { passive: true })
 	window.addEventListener("blur", resetPointer)
 	document.documentElement.addEventListener("mouseleave", resetPointer)
 
-	const section = images[0].closest(".main")
-	const observer = section && "IntersectionObserver" in window
-		? new IntersectionObserver(([entry]) => {
-			isSectionVisible = entry.isIntersecting
-		}, { threshold: 0 })
-		: null
-
-	if (section && observer) observer.observe(section)
 	render()
 
 	return () => {
 		window.cancelAnimationFrame(animationFrame)
 		window.removeEventListener("pointermove", handlePointerMove)
-		window.removeEventListener("scroll", handleScroll)
 		window.removeEventListener("blur", resetPointer)
 		document.documentElement.removeEventListener("mouseleave", resetPointer)
-		observer?.disconnect()
 		effects.forEach((effect) => effect.destroy())
 	}
 }
