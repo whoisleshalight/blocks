@@ -143,9 +143,74 @@
 	}
 }
 
+@keyframes home-services-decor-twinkle {
+
+	0%,
+	46%,
+	100% {
+		opacity: 0;
+	}
+
+	58%,
+	76% {
+		opacity: 1;
+	}
+
+	88% {
+		opacity: 0;
+	}
+}
+
 .home-services__decor {
 	span {
 		position: absolute;
+		opacity: 0;
+		animation: home-services-decor-twinkle 4.2s ease-in-out infinite;
+		will-change: opacity;
+
+		&:nth-child(6n + 1) {
+			animation-duration: 3.1s;
+		}
+
+		&:nth-child(6n + 2) {
+			animation-duration: 4.7s;
+		}
+
+		&:nth-child(6n + 3) {
+			animation-duration: 5.3s;
+		}
+
+		&:nth-child(6n + 4) {
+			animation-duration: 3.8s;
+		}
+
+		&:nth-child(6n + 5) {
+			animation-duration: 6.1s;
+		}
+
+		&:nth-child(6n) {
+			animation-duration: 4.4s;
+		}
+
+		&:nth-child(5n + 1) {
+			animation-delay: -0.8s;
+		}
+
+		&:nth-child(5n + 2) {
+			animation-delay: -2.9s;
+		}
+
+		&:nth-child(5n + 3) {
+			animation-delay: -1.6s;
+		}
+
+		&:nth-child(5n + 4) {
+			animation-delay: -3.4s;
+		}
+
+		&:nth-child(5n) {
+			animation-delay: -2.1s;
+		}
 
 		&:nth-child(1),
 		&:nth-child(2),
@@ -289,5 +354,15 @@
 			left: 726px;
 		}
 
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.home-services__decor span {
+		animation: none;
+
+		&:nth-child(4n) {
+			opacity: 1;
+		}
 	}
 }
