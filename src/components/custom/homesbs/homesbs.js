@@ -1,5 +1,8 @@
 import "./homesbs.scss"
-import { gsap, ScrollTrigger } from "gsap/all"
+import {
+	gsap,
+	ScrollTrigger
+} from "gsap/all"
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -15,7 +18,9 @@ const initHomeSbs = () => document.querySelectorAll("[data-fls-homesbs]").forEac
 
 	if (!screen || !items.length) return
 
-	const state = { position: 0 }
+	const state = {
+		position: 0
+	}
 	const lastPosition = Math.max(items.length - 1, 0)
 	let itemStep = 0
 	let curveNear = 0
@@ -102,9 +107,9 @@ const initHomeSbs = () => document.querySelectorAll("[data-fls-homesbs]").forEac
 
 	const sectionStyles = window.getComputedStyle(section)
 	const scrubValue = Number.parseFloat(sectionStyles.getPropertyValue("--home-sbs-smooth"))
-	const scrub = prefersReducedMotion.matches
-		? true
-		: Number.isFinite(scrubValue) ? Math.max(0, scrubValue) : 0.18
+	const scrub = prefersReducedMotion.matches ?
+		true :
+		Number.isFinite(scrubValue) ? Math.max(0, scrubValue) : 0.18
 
 	measure()
 
@@ -129,7 +134,9 @@ const initHomeSbs = () => document.querySelectorAll("[data-fls-homesbs]").forEac
 })
 
 if (document.readyState === "loading") {
-	document.addEventListener("DOMContentLoaded", initHomeSbs, { once: true })
+	document.addEventListener("DOMContentLoaded", initHomeSbs, {
+		once: true
+	})
 } else {
 	initHomeSbs()
 }
