@@ -9,19 +9,50 @@ gsap.registerPlugin(ScrollTrigger)
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max)
 const smoothstep = (value) => value * value * (3 - 2 * value)
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)")
+const isMobile = window.matchMedia("(max-width: 991.98px)")
+const homeSbsConfig = {
+	scrollUnitVh: 100,
+	transitionDuration: 1,
+	itemGap: 60,
+	curveScale: 1,
+	mobileCurveScale: 0.45,
+	scrub: 0.18,
+	scaleStep: 0.1,
+	scaleMin: 0.6,
+	centerHoldDuration: 1
+}
 
 const initHomeSbs = () => document.querySelectorAll("[data-fls-homesbs]").forEach((section) => {
 	const screen = section.querySelector(".home-sbs__screen")
 	const items = gsap.utils.toArray(section.querySelectorAll(".item-home-sbs"))
-	const progressItems = gsap.utils.toArray(section.querySelectorAll(".home-sbs__pagination--act > span"))
+	const progress = section.querySelector(".home-sbs__pagination--act")
 	const iconItems = gsap.utils.toArray(section.querySelectorAll(".info-home-sbs__pagination li"))
 
-	if (!screen || !items.length) return
+	if (!screen || !progress || !items.length) return
+
+	const progressItems = items.map(() => {
+		const item = document.createElement("span")
+		item.className = "home-sbs__pagination-step"
+		return item
+	})
+
+	progress.replaceChildren(...progressItems)
 
 	const state = {
 		position: 0
 	}
 	const lastPosition = Math.max(items.length - 1, 0)
+	const entryDuration = 100 / homeSbsConfig.scrollUnitVh
+	const progressDurations = items.map((_, index) => {
+		const transitionDuration = index ? homeSbsConfig.transitionDuration : entryDuration
+		return transitionDuration + homeSbsConfig.centerHoldDuration
+	})
+	const totalProgressDuration = progressDurations.reduce((total, duration) => total + duration, 0)
+
+	gsap.set(section, {
+		height: `${totalProgressDuration * homeSbsConfig.scrollUnitVh}vh`
+	})
+
 	let itemStep = 0
 	let curveNear = 0
 	let curveFar = 0
@@ -56,11 +87,19 @@ const initHomeSbs = () => document.querySelectorAll("[data-fls-homesbs]").forEac
 		})
 	}
 
+	const renderProgress = (value) => {
+		const elapsed = value * totalProgressDuration
+		let itemStart = 0
+
+		progressItems.forEach((item, index) => {
+			const itemProgress = clamp((elapsed - itemStart) / progressDurations[index], 0, 1)
+			item.style.setProperty("--progress", itemProgress.toFixed(4))
+			itemStart += progressDurations[index]
+		})
+	}
+
 	const renderCards = () => {
 		const position = state.position
-		const progress = lastPosition ? position / lastPosition : 0
-
-		section.style.setProperty("--home-sbs-progress", progress.toFixed(4))
 
 		items.forEach((item, index) => {
 			const relativePosition = index - position
@@ -77,43 +116,48 @@ const initHomeSbs = () => document.querySelectorAll("[data-fls-homesbs]").forEac
 			})
 		})
 
-		progressItems.forEach((item, index) => {
-			const itemProgress = clamp(position - index + 1, 0, 1)
-			const progressLine = item.querySelector(".home-sbs__pagination-progress")
-			if (progressLine) progressLine.style.width = `${(itemProgress * 100).toFixed(2)}%`
-			item.classList.toggle("-active", index === Math.round(position))
-		})
-
 		setActiveItem(clamp(Math.round(position), 0, items.length - 1))
 	}
 
 	const measure = () => {
-		const sectionStyles = window.getComputedStyle(section)
 		const itemWidth = items[0].offsetWidth
 		const itemHeight = items[0].offsetHeight
-		const itemGap = Number.parseFloat(sectionStyles.getPropertyValue("--home-sbs-item-gap")) || 0
-		const curveScale = Number.parseFloat(sectionStyles.getPropertyValue("--home-sbs-curve-scale")) || 1
-		const scaleValue = Number.parseFloat(sectionStyles.getPropertyValue("--home-sbs-scale-step"))
-		const scaleMinValue = Number.parseFloat(sectionStyles.getPropertyValue("--home-sbs-scale-min"))
+		const curveScale = isMobile.matches ? homeSbsConfig.mobileCurveScale : homeSbsConfig.curveScale
 
-		itemStep = itemHeight + itemGap
+		itemStep = itemHeight + homeSbsConfig.itemGap
 		curveNear = itemWidth * (156 / 764) * curveScale
 		curveFar = itemWidth * (300 / 764) * curveScale
-		scaleStep = Number.isFinite(scaleValue) ? Math.max(0, scaleValue) : 0.1
-		scaleMin = Number.isFinite(scaleMinValue) ? clamp(scaleMinValue, 0.1, 1) : 0.6
+		scaleStep = prefersReducedMotion.matches ? 0 : homeSbsConfig.scaleStep
+		scaleMin = homeSbsConfig.scaleMin
 
 		renderCards()
 	}
 
-	const sectionStyles = window.getComputedStyle(section)
-	const scrubValue = Number.parseFloat(sectionStyles.getPropertyValue("--home-sbs-smooth"))
 	const scrub = prefersReducedMotion.matches ?
 		true :
-		Number.isFinite(scrubValue) ? Math.max(0, scrubValue) : 0.18
+		homeSbsConfig.scrub
 
+	renderProgress(0)
 	measure()
 
-	gsap.timeline({
+	const progressState = {
+		value: 0
+	}
+	gsap.to(progressState, {
+		value: 1,
+		duration: 1,
+		ease: "none",
+		onUpdate: () => renderProgress(progressState.value),
+		scrollTrigger: {
+			trigger: section,
+			start: "top bottom",
+			end: "bottom bottom",
+			scrub,
+			invalidateOnRefresh: true
+		}
+	})
+
+	const cardsTimeline = gsap.timeline({
 		scrollTrigger: {
 			trigger: section,
 			start: "top top",
@@ -125,12 +169,27 @@ const initHomeSbs = () => document.querySelectorAll("[data-fls-homesbs]").forEac
 			invalidateOnRefresh: true,
 			onRefreshInit: measure
 		}
-	}).to(state, {
-		position: lastPosition,
-		duration: 1,
-		ease: "none",
-		onUpdate: renderCards
 	})
+
+	const addCenterHold = () => {
+		cardsTimeline.to({}, {
+			duration: homeSbsConfig.centerHoldDuration,
+			ease: "none"
+		})
+	}
+
+	addCenterHold()
+
+	for (let index = 1; index <= lastPosition; index++) {
+		cardsTimeline.to(state, {
+			position: index,
+			duration: homeSbsConfig.transitionDuration,
+			ease: "none",
+			onUpdate: renderCards
+		})
+
+		addCenterHold()
+	}
 })
 
 if (document.readyState === "loading") {
