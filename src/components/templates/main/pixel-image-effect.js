@@ -9,7 +9,10 @@ const defaultConfig = {
 	aberration: 0,
 	velocityDecay: 0.3,
 	overflow: 0.16,
-	maxOffset: 0.35
+	maxOffset: 0.35,
+	revealStart: 0.9,
+	revealEnd: 0.55,
+	revealSmoothing: 0.055
 }
 
 const vertexShader = /* glsl */ `
@@ -26,6 +29,8 @@ const fragmentShader = /* glsl */ `
 	uniform sampler2D uGrid;
 	uniform vec2 uGridSize;
 	uniform vec4 uImageBounds;
+	uniform vec2 uCornerCut;
+	uniform float uReveal;
 	uniform float uDisplacement;
 	uniform float uAberration;
 	varying vec2 vUv;
@@ -34,8 +39,31 @@ const fragmentShader = /* glsl */ `
 		return step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0);
 	}
 
+	float outsideCornerCut(vec2 uv) {
+		float cutEnabled = step(0.000001, uCornerCut.x) * step(0.000001, uCornerCut.y);
+		float cutX = max(uCornerCut.x, 0.000001);
+		float cutY = max(uCornerCut.y, 0.000001);
+		float outsideCut = step(1.0, uv.x / cutX + (1.0 - uv.y) / cutY);
+
+		return mix(1.0, outsideCut, cutEnabled);
+	}
+
+	float randomCell(vec2 cell) {
+		return fract(sin(dot(cell, vec2(12.9898, 78.233))) * 43758.5453);
+	}
+
+	float pixelReveal(vec2 uv) {
+		vec2 revealUv = clamp(uv, 0.0, 1.0);
+		vec2 cell = floor(revealUv * uGridSize);
+		float randomOrder = randomCell(cell);
+		float topToBottom = 1.0 - revealUv.y;
+		float threshold = randomOrder * 0.55 + topToBottom * 0.3;
+
+		return smoothstep(threshold, threshold + 0.12, uReveal);
+	}
+
 	vec4 sampleImage(vec2 uv) {
-		return texture2D(uImage, clamp(uv, 0.0, 1.0)) * insideImage(uv);
+		return texture2D(uImage, clamp(uv, 0.0, 1.0)) * insideImage(uv) * outsideCornerCut(uv);
 	}
 
 	void main() {
@@ -49,7 +77,7 @@ const fragmentShader = /* glsl */ `
 		vec4 center = sampleImage(centerUv);
 		vec4 redSample = sampleImage(centerUv + split);
 		vec4 blueSample = sampleImage(centerUv - split);
-		float alpha = max(center.a, max(redSample.a, blueSample.a));
+		float alpha = max(center.a, max(redSample.a, blueSample.a)) * pixelReveal(imageUv);
 
 		gl_FragColor = vec4(redSample.r, center.g, blueSample.b, alpha);
 	}
@@ -70,6 +98,8 @@ class PixelImageEffect {
 	constructor(image, config) {
 		this.image = image
 		this.config = config
+		this.revealEnabled = image.hasAttribute("data-pixel-scroll-reveal")
+		this.revealProgress = this.revealEnabled ? 0 : 1
 		this.ready = false
 	}
 
@@ -125,6 +155,8 @@ class PixelImageEffect {
 						1 - this.config.overflow / canvasScale
 					)
 				},
+				uCornerCut: { value: new THREE.Vector2(0, 0) },
+				uReveal: { value: this.revealProgress },
 				uDisplacement: { value: this.config.displacement },
 				uAberration: { value: this.config.aberration }
 			},
@@ -157,6 +189,7 @@ class PixelImageEffect {
 		this.canvas.addEventListener("webglcontextlost", (event) => {
 			event.preventDefault()
 			this.image.classList.remove("-pixel-effect-source")
+			this.image.removeAttribute("data-pixel-scroll-reveal")
 			this.canvas.hidden = true
 		})
 
@@ -174,6 +207,17 @@ class PixelImageEffect {
 			this.canvas.style.bottom = "auto"
 			this.canvas.style.width = `${width * canvasScale}px`
 			this.canvas.style.height = `${height * canvasScale}px`
+
+			const cornerCutValue = Number.parseFloat(
+				window.getComputedStyle(this.image).getPropertyValue("--pixel-effect-corner-cut")
+			) || 0
+			const cornerCut = Math.max(0, cornerCutValue)
+
+			this.material.uniforms.uCornerCut.value.set(
+				clamp(cornerCut / width, 0, 1),
+				clamp(cornerCut / height, 0, 1)
+			)
+			this.renderer.render(this.scene, this.camera)
 		}
 		this.syncCanvasLayout()
 
@@ -188,6 +232,27 @@ class PixelImageEffect {
 		this.ready = true
 
 		return this
+	}
+
+	updateReveal() {
+		if (!this.revealEnabled) return false
+
+		const rect = this.image.getBoundingClientRect()
+		const start = window.innerHeight * this.config.revealStart
+		const end = window.innerHeight * this.config.revealEnd
+		const target = clamp((start - rect.top) / Math.max(start - end, 1), 0, 1)
+		const difference = target - this.revealProgress
+
+		if (Math.abs(difference) < 0.0005) {
+			if (this.revealProgress === target) return false
+
+			this.revealProgress = target
+		} else {
+			this.revealProgress += difference * this.config.revealSmoothing
+		}
+
+		this.material.uniforms.uReveal.value = this.revealProgress
+		return true
 	}
 
 	update(pointer) {
@@ -208,7 +273,7 @@ class PixelImageEffect {
 		const mouseY = isPointerInside ? (1 - (pointer.y - rect.top) / rect.height) * this.gridHeight : -1000
 		const velocityX = hasSize ? pointer.velocityX / rect.width : 0
 		const velocityY = hasSize ? -pointer.velocityY / rect.height : 0
-		let needsRender = false
+		let needsRender = this.updateReveal()
 
 		for (let y = 0; y < this.gridHeight; y++) {
 			for (let x = 0; x < this.gridWidth; x++) {
@@ -254,6 +319,7 @@ class PixelImageEffect {
 
 	destroy() {
 		this.image.classList.remove("-pixel-effect-source")
+		this.image.removeAttribute("data-pixel-scroll-reveal")
 		this.resizeObserver?.disconnect()
 		window.removeEventListener("resize", this.syncCanvasLayout)
 		this.canvas?.remove()
@@ -281,6 +347,7 @@ export const initPixelImageEffects = async (selector, options = {}) => {
 			return await new PixelImageEffect(image, config).init()
 		} catch (error) {
 			delete image.dataset.pixelEffectInitialized
+			image.removeAttribute("data-pixel-scroll-reveal")
 			console.warn("Pixel image effect could not be initialized", error)
 			return null
 		}
