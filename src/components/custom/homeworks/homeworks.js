@@ -94,7 +94,7 @@ const initWorksActions = (section) => {
 			trigger: actions,
 			start: "top bottom",
 			end: "center center-=20%",
-			scrub: 0.6,
+			scrub: 1.2,
 			invalidateOnRefresh: true,
 			onRefreshInit: measureWidths
 		}
