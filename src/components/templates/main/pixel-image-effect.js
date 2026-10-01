@@ -29,7 +29,7 @@ const fragmentShader = /* glsl */ `
 	uniform sampler2D uGrid;
 	uniform vec2 uGridSize;
 	uniform vec4 uImageBounds;
-	uniform vec2 uCornerCut;
+	uniform vec4 uCornerCut;
 	uniform float uReveal;
 	uniform float uDisplacement;
 	uniform float uAberration;
@@ -39,13 +39,19 @@ const fragmentShader = /* glsl */ `
 		return step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0);
 	}
 
-	float outsideCornerCut(vec2 uv) {
-		float cutEnabled = step(0.000001, uCornerCut.x) * step(0.000001, uCornerCut.y);
-		float cutX = max(uCornerCut.x, 0.000001);
-		float cutY = max(uCornerCut.y, 0.000001);
-		float outsideCut = step(1.0, uv.x / cutX + (1.0 - uv.y) / cutY);
+	float outsideCornerCuts(vec2 uv) {
+		float topLeftEnabled = step(0.000001, uCornerCut.x) * step(0.000001, uCornerCut.y);
+		float topLeftX = max(uCornerCut.x, 0.000001);
+		float topLeftY = max(uCornerCut.y, 0.000001);
+		float outsideTopLeft = step(1.0, uv.x / topLeftX + (1.0 - uv.y) / topLeftY);
 
-		return mix(1.0, outsideCut, cutEnabled);
+		float bottomRightEnabled = step(0.000001, uCornerCut.z) * step(0.000001, uCornerCut.w);
+		float bottomRightX = max(uCornerCut.z, 0.000001);
+		float bottomRightY = max(uCornerCut.w, 0.000001);
+		float outsideBottomRight = step(1.0, (1.0 - uv.x) / bottomRightX + uv.y / bottomRightY);
+
+		return mix(1.0, outsideTopLeft, topLeftEnabled)
+			* mix(1.0, outsideBottomRight, bottomRightEnabled);
 	}
 
 	float randomCell(vec2 cell) {
@@ -63,7 +69,7 @@ const fragmentShader = /* glsl */ `
 	}
 
 	vec4 sampleImage(vec2 uv) {
-		return texture2D(uImage, clamp(uv, 0.0, 1.0)) * insideImage(uv) * outsideCornerCut(uv);
+		return texture2D(uImage, clamp(uv, 0.0, 1.0)) * insideImage(uv) * outsideCornerCuts(uv);
 	}
 
 	void main() {
@@ -191,7 +197,7 @@ class PixelImageEffect {
 						1 - this.config.overflow / canvasScale
 					)
 				},
-				uCornerCut: { value: new THREE.Vector2(0, 0) },
+				uCornerCut: { value: new THREE.Vector4(0, 0, 0, 0) },
 				uReveal: { value: this.revealProgress },
 				uDisplacement: { value: this.config.displacement },
 				uAberration: { value: this.config.aberration }
@@ -244,14 +250,19 @@ class PixelImageEffect {
 			this.canvas.style.width = `${width * canvasScale}px`
 			this.canvas.style.height = `${height * canvasScale}px`
 
-			const cornerCutValue = Number.parseFloat(
-				window.getComputedStyle(this.image).getPropertyValue("--pixel-effect-corner-cut")
-			) || 0
-			const cornerCut = Math.max(0, cornerCutValue)
+			const imageStyles = window.getComputedStyle(this.image)
+			const cornerCut = Math.max(0, Number.parseFloat(
+				imageStyles.getPropertyValue("--pixel-effect-corner-cut")
+			) || 0)
+			const bottomRightCornerCut = Math.max(0, Number.parseFloat(
+				imageStyles.getPropertyValue("--pixel-effect-corner-cut-bottom-right")
+			) || 0)
 
 			this.material.uniforms.uCornerCut.value.set(
 				clamp(cornerCut / width, 0, 1),
-				clamp(cornerCut / height, 0, 1)
+				clamp(cornerCut / height, 0, 1),
+				clamp(bottomRightCornerCut / width, 0, 1),
+				clamp(bottomRightCornerCut / height, 0, 1)
 			)
 			this.renderer.render(this.scene, this.camera)
 		}
