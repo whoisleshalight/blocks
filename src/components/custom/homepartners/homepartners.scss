@@ -3,7 +3,15 @@
 
 	&__container {}
 
-	&__marquee {}
+	&__marquee {
+		transform-origin: center center;
+
+		@media (prefers-reduced-motion: no-preference) {
+			opacity: 0;
+			clip-path: polygon(50% 0%, 50% 0%, 50% 100%, 50% 100%);
+			transform: translate3d(0, 64px, 0) scale(0.96);
+		}
+	}
 
 	&__actions {
 		margin-top: 80px;
@@ -22,10 +30,10 @@
 		font-size: 120px;
 		font-weight: 800;
 		line-height: 80%;
-		flex: 0 0 850px;
+		flex: 0 0 870px;
 	}
 
-	span {
+	> span {
 		flex: 0 0 140px;
 		height: 1px;
 		background-color: #000;

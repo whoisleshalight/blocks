@@ -255,6 +255,14 @@
 	width: var(--footer-about-item-width);
 	height: var(--footer-about-item-height);
 
+	&[data-footer-about-reveal] {
+		@media (prefers-reduced-motion: no-preference) {
+			visibility: hidden;
+			opacity: 0;
+			will-change: transform, opacity;
+		}
+	}
+
 	.item-footer-about-home__inner {
 		display: flex;
 		flex-direction: column;

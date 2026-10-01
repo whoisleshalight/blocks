@@ -25,9 +25,14 @@ const getBlurScrollTrigger = (item) => {
 
 const initTextItems = (root) => {
 	root.querySelectorAll("[data-fls-scrollblur-text]:not([data-fls-scrollblur-text-ready])").forEach((textItem) => {
+		const group = textItem.closest("[data-fls-scrollblur-group]")
 		const requestedMode = textItem.dataset.flsScrollblurText
 		const isLongText = textItem.textContent.trim().length > LONG_TEXT_THRESHOLD
 		const splitByWords = requestedMode === "words" || (requestedMode !== "chars" && isLongText)
+		const staggerFrom = textItem.dataset.flsScrollblurStaggerFrom
+			|| group?.dataset.flsScrollblurStaggerFrom
+			|| "center"
+		const useGroupFilter = textItem.dataset.flsScrollblurFilter === "group"
 		const splitText = new SplitType(textItem, {
 			types: splitByWords ? "words" : "words, chars",
 			tagName: "span"
@@ -37,20 +42,33 @@ const initTextItems = (root) => {
 		textItem.dataset.flsScrollblurTextReady = ""
 
 		gsap.set(animatedItems, {
-			filter: "blur(12px)",
+			filter: useGroupFilter ? "none" : "blur(12px)",
 			opacity: 0
 		})
+		if (useGroupFilter) {
+			gsap.set(textItem, {
+				filter: "blur(8px)",
+				willChange: "filter"
+			})
+		}
 
 		gsap.to(animatedItems, {
-			filter: "blur(0px)",
+			...(useGroupFilter ? {} : { filter: "blur(0px)" }),
 			opacity: 1,
 			ease: "power2.inOut",
 			stagger: {
 				amount: splitByWords ? 0.25 : 0.35,
-				from: "center"
+				from: staggerFrom
 			},
 			scrollTrigger: getBlurScrollTrigger(textItem)
 		})
+		if (useGroupFilter) {
+			gsap.to(textItem, {
+				filter: "blur(0px)",
+				ease: "power2.inOut",
+				scrollTrigger: getBlurScrollTrigger(textItem)
+			})
+		}
 
 		gsap.set(textItem, {
 			visibility: "visible"
