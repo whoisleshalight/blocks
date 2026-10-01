@@ -1,53 +1,10 @@
 import "./homeworks.scss"
-import SplitType from "split-type"
 import {
 	gsap,
 	ScrollTrigger
 } from "gsap/all"
 
 gsap.registerPlugin(ScrollTrigger)
-
-const getBlurScrollTrigger = (trigger, end = "center center-=30%") => ({
-	trigger,
-	start: "top bottom+=20%",
-	end,
-	scrub: 0.6,
-	invalidateOnRefresh: true
-})
-
-const initScrollBlurText = () => {
-	document.querySelectorAll("[data-scroll-blur-text]").forEach((textItem) => {
-		const groupTrigger = textItem.closest("[data-scroll-blur-group]")
-		const triggerEnd = groupTrigger?.dataset.scrollBlurEnd
-		const splitText = new SplitType(textItem, {
-			types: "words, chars",
-			tagName: "span"
-		})
-
-		splitText.words.forEach((word) => {
-			const chars = word.querySelectorAll(".char")
-
-			gsap.set(chars, {
-				filter: "blur(12px) opacity(0)",
-				willChange: "filter"
-			})
-
-			gsap.to(chars, {
-				filter: "blur(0px) opacity(1)",
-				ease: "power2.inOut",
-				stagger: {
-					amount: 0.15,
-					from: "center"
-				},
-				scrollTrigger: getBlurScrollTrigger(groupTrigger || word, triggerEnd)
-			})
-		})
-
-		gsap.set(textItem, {
-			visibility: "visible"
-		})
-	})
-}
 
 const initWorksActions = (section) => {
 	const actions = section.querySelector(".works__actions")
@@ -101,46 +58,13 @@ const initWorksActions = (section) => {
 	})
 }
 
-const initHomeworksBlurText = () => {
+const initHomeworksAnimations = () => {
 	if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
 
-	initScrollBlurText()
-
 	document.querySelectorAll("[data-fls-homeworks]").forEach((section) => {
-		const title = section.querySelector(".top-section-one__title")
-		const divider = section.querySelector(".top-section-one > span")
 		const itemValueGraphics = section.querySelectorAll(".item-works__value > svg")
 
 		initWorksActions(section)
-
-		if (title) {
-			gsap.set(title, {
-				"--homeworks-title-decor-blur": "12px",
-				"--homeworks-title-decor-opacity": 0
-			})
-
-			gsap.to(title, {
-				"--homeworks-title-decor-blur": "0px",
-				"--homeworks-title-decor-opacity": 1,
-				ease: "power2.inOut",
-				scrollTrigger: getBlurScrollTrigger(title)
-			})
-		}
-
-		if (divider) {
-			gsap.set(divider, {
-				filter: "blur(12px)",
-				opacity: 0,
-				willChange: "filter, opacity"
-			})
-
-			gsap.to(divider, {
-				filter: "blur(0px)",
-				opacity: 1,
-				ease: "power2.inOut",
-				scrollTrigger: getBlurScrollTrigger(divider)
-			})
-		}
 
 		itemValueGraphics.forEach((graphic) => {
 			gsap.set(graphic, {
@@ -177,9 +101,9 @@ const initHomeworksBlurText = () => {
 }
 
 if (document.readyState === "loading") {
-	document.addEventListener("DOMContentLoaded", initHomeworksBlurText, {
+	document.addEventListener("DOMContentLoaded", initHomeworksAnimations, {
 		once: true
 	})
 } else {
-	initHomeworksBlurText()
+	initHomeworksAnimations()
 }

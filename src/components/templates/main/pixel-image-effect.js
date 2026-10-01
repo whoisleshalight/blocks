@@ -85,6 +85,40 @@ const fragmentShader = /* glsl */ `
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
 
+const revealPoints = {
+	top: 0,
+	center: 0.5,
+	bottom: 1
+}
+
+const parseRevealPoint = (value, fallback) => {
+	if (!value) return fallback
+
+	const normalizedValue = value.toLowerCase()
+	if (normalizedValue in revealPoints) return revealPoints[normalizedValue]
+
+	const number = Number.parseFloat(normalizedValue)
+	if (!Number.isFinite(number)) return fallback
+
+	return normalizedValue.endsWith("%") || Math.abs(number) > 1 ? number / 100 : number
+}
+
+const parseRevealPosition = (value, fallbackViewportPoint) => {
+	const points = value?.trim().split(/\s+/).filter(Boolean) || []
+
+	if (points.length > 1) {
+		return {
+			element: parseRevealPoint(points[0], 0),
+			viewport: parseRevealPoint(points[1], fallbackViewportPoint)
+		}
+	}
+
+	return {
+		element: 0,
+		viewport: parseRevealPoint(points[0], fallbackViewportPoint)
+	}
+}
+
 const waitForImage = (image) => {
 	if (image.complete && image.naturalWidth > 0) return Promise.resolve()
 
@@ -100,6 +134,8 @@ class PixelImageEffect {
 		this.config = config
 		this.revealEnabled = image.hasAttribute("data-pixel-scroll-reveal")
 		this.revealProgress = this.revealEnabled ? 0 : 1
+		this.revealStart = parseRevealPosition(image.dataset.pixelScrollRevealStart, config.revealStart)
+		this.revealEnd = parseRevealPosition(image.dataset.pixelScrollRevealEnd, config.revealEnd)
 		this.ready = false
 	}
 
@@ -238,8 +274,8 @@ class PixelImageEffect {
 		if (!this.revealEnabled) return false
 
 		const rect = this.image.getBoundingClientRect()
-		const start = window.innerHeight * this.config.revealStart
-		const end = window.innerHeight * this.config.revealEnd
+		const start = window.innerHeight * this.revealStart.viewport - rect.height * this.revealStart.element
+		const end = window.innerHeight * this.revealEnd.viewport - rect.height * this.revealEnd.element
 		const target = clamp((start - rect.top) / Math.max(start - end, 1), 0, 1)
 		const difference = target - this.revealProgress
 

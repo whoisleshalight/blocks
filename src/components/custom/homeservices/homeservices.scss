@@ -35,10 +35,13 @@
 			width: 78px;
 			height: 10px;
 			background-color: #B3C29B;
+			opacity: var(--scroll-blur-decor-opacity);
+			filter: blur(var(--scroll-blur-decor-blur));
+			will-change: filter, opacity;
 		}
 	}
 
-	span {
+	> span {
 		width: 320px;
 		flex: 0 0 320px;
 		height: 1px;

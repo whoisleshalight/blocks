@@ -48,9 +48,16 @@
 		font-size: 120px;
 		font-weight: 800;
 		text-transform: uppercase;
-		text-indent: 110px;
 		line-height: 80%;
 		position: relative;
+
+		.word {
+			text-indent: 0;
+
+			&:first-child {
+				padding-left: 110px;
+			}
+		}
 
 		&::before {
 			content: '';
@@ -60,6 +67,9 @@
 			position: absolute;
 			left: 2px;
 			top: 40px;
+			opacity: var(--scroll-blur-decor-opacity);
+			filter: blur(var(--scroll-blur-decor-blur));
+			will-change: filter, opacity;
 		}
 	}
 
@@ -74,7 +84,7 @@
 		margin-left: 440px;
 		margin-top: -70px;
 
-		span {
+		> span {
 			display: block;
 			margin-top: 18px;
 			width: 152px;

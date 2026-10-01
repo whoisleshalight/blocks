@@ -1,0 +1,22 @@
+[data-fls-scrollblur-text] {
+	@media (prefers-reduced-motion: no-preference) {
+		visibility: hidden;
+	}
+}
+
+[data-fls-scrollblur-element] {
+	@media (prefers-reduced-motion: no-preference) {
+		opacity: 0;
+		filter: blur(12px);
+	}
+}
+
+[data-fls-scrollblur-decor] {
+	--scroll-blur-decor-blur: 0px;
+	--scroll-blur-decor-opacity: 1;
+
+	@media (prefers-reduced-motion: no-preference) {
+		--scroll-blur-decor-blur: 12px;
+		--scroll-blur-decor-opacity: 0;
+	}
+}
